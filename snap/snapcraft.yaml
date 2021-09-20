@@ -1,0 +1,469 @@
+name: gutenprint-printer-app
+base: core20
+version: '1.0'
+summary: Gutenprint Printer Application
+description: |
+  The Gutenprint Printer Application is a PAPPL (Printer Application
+  Framework) based Printer Application to support printers using the
+  Gutenprint printer driver.
+
+grade: stable
+confinement: strict
+
+# Only build on the architectures supported
+architectures:
+  - build-on: amd64
+  - build-on: arm64
+  - build-on: armhf
+
+# Make resolution of ".local" host names (Zero-Conf/mDNS/DNS-SD)
+# working: Mirror nsswitch.conf with added mDNS look-up support into
+# /etc/nsswitch.conf
+# See: https://forum.snapcraft.io/t/how-can-i-lookup-host-name-from-snap-core-using-avahi-mdns/
+layout:
+  /etc/nsswitch.conf:
+    bind-file: $SNAP/etc/nsswitch.conf
+
+apps:
+  gutenprint-printer-app-server:
+    command: scripts/run-gutenprint-printer-app-server
+    daemon: simple
+    plugs: [avahi-control, home, network, network-bind, raw-usb]
+  gutenprint-printer-app:
+    command: scripts/run-gutenprint-printer-app
+    plugs: [avahi-control, home, network, network-bind, raw-usb]
+
+parts:
+  patches:
+    plugin: dump
+    source: snap/local/
+    organize:
+      '*.patch' : patches/
+    override-prime: ""
+
+  jpeglib:
+    plugin: autotools
+    source: https://www.ijg.org/files/jpegsrc.v9d.tar.gz
+    source-type: tar
+    autotools-configure-parameters:
+      - --prefix=/usr
+    prime:
+      - -etc/fonts
+      - -var
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - -snap
+      - usr/lib/libjpeg.so.9
+      - usr/lib/libjpeg.so.9.4.0
+
+  pappl:
+    source: https://github.com/michaelrsweet/pappl
+    source-type: git
+    plugin: autotools
+    override-build: |
+      set -eux
+      patch -p1 < $SNAPCRAFT_STAGE/patches/pappl-support-text-string-vendor-options.patch
+      snapcraftctl build
+    autotools-configure-parameters:
+      - --prefix=/usr
+      - --with-papplstatedir=/var/snap/gutenprint-printer-app/common
+      - --with-papplsockdir=/var/snap/gutenprint-printer-app/common/tmp
+      - --enable-libjpeg
+      - --enable-libpng
+      - --enable-libusb
+      - --with-dnssd=avahi
+    build-packages:
+      - libavahi-client-dev
+      - libgnutls28-dev
+      - libjpeg-dev
+      - libpam0g-dev
+      - libpng-dev
+      - libusb-1.0-0-dev
+      - zlib1g-dev
+    stage-packages:
+      - libavahi-client3
+      - libpng16-16
+      - libusb-1.0-0
+    prime:
+      - -etc/fonts
+      - lib
+      - -var
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - -snap
+      - usr/lib/libpappl.so.1
+    after: [patches, jpeglib]
+
+  pappl-retrofit:
+    source: https://github.com/openprinting/pappl-retrofit
+    source-type: git
+    plugin: autotools
+    override-build: |
+      set -eux
+      patch -p1 < $SNAPCRAFT_STAGE/patches/support-new-pappl-string-options.patch
+      snapcraftctl build
+    autotools-configure-parameters:
+      - --prefix=/usr
+    build-packages:
+      - autoconf
+      - automake
+      - libtool
+      - autotools-dev
+      - pkg-config
+      - perl-base
+    prime:
+      - -var
+      - -usr/var
+      - -usr/bin/test-printer-app
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/lib/test-printer-app
+      - -usr/share/
+      - -snap
+    after: [patches, cups, cups-filters, pappl]
+
+  qpdf:
+    source: https://github.com/qpdf/qpdf/releases/download/release-qpdf-10.3.2/qpdf-10.3.2.tar.gz
+    plugin: autotools
+    autotools-configure-parameters:
+      - --prefix=/usr
+    build-packages:
+      - g++
+      - zlib1g-dev
+    stage-packages:
+      - libjpeg-turbo8
+    prime:
+      - -etc/fonts
+      - -var
+      - -usr/include
+      - -share/man
+      - -share/doc
+      - -share/lintian
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - -usr/lib/libqpdf.a
+      - -usr/lib/libqpdf.la
+      - -usr/lib/pkgconfig
+
+  ghostscript:
+    source: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9540/ghostscript-9.54.0.tar.gz
+    plugin: autotools
+    # We only need Raster and PostScript output
+    autotools-configure-parameters:
+      - --prefix=/usr
+      - --without-x
+      - --disable-gtk
+      - --with-drivers=cups,pwgraster,ps2write
+      - --enable-freetype
+      - --without-tesseract
+      - --datarootdir=/snap/gutenprint-printer-app/current/usr/share/
+    stage-packages:
+      - libpaper1
+      - libfontconfig1
+      - libfreetype6
+      - libpng16-16
+    prime:
+      - -etc/fonts
+      - -var
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - -snap
+    organize:
+      snap/gutenprint-printer-app/current/usr/share: usr/share
+
+  cups:
+    source: https://github.com/OpenPrinting/cups
+    source-type: git
+    plugin: autotools
+    # We only need libcups (with headers, ...)
+    override-build: |
+      set -eux
+      ./configure --sysconfdir=/var/snap/gutenprint-printer-app/common/
+      cd cups
+      make
+      cd ..
+      mkdir -p $SNAPCRAFT_STAGE/usr/lib
+      cp cups/libcups*.a $SNAPCRAFT_STAGE/usr/lib/
+      cp cups/libcups*.so* $SNAPCRAFT_STAGE/usr/lib/
+      mkdir -p $SNAPCRAFT_STAGE/usr/include/cups
+      cp cups/*.h $SNAPCRAFT_STAGE/usr/include/cups/
+      mkdir -p $SNAPCRAFT_STAGE/usr/bin
+      cp cups-config $SNAPCRAFT_STAGE/usr/bin/
+      #snapcraftctl build
+    build-packages:
+      - patch
+      - gettext
+      - autoconf
+      - automake
+      - libtool
+      - autotools-dev
+      - pkg-config
+      - libavahi-client-dev
+      - libavahi-common-dev
+      - libavahi-compat-libdnssd-dev
+      - libdbus-1-dev
+      - libfontconfig1-dev
+      - libfreetype6-dev
+      - libgnutls28-dev
+      - libjpeg-dev
+      - libldap2-dev
+      - libkrb5-dev
+      - libpam0g-dev
+      - libpaper-dev
+      - libpng-dev
+    stage-packages:
+      - libavahi-common3
+      - libavahi-client3
+      - libicu66
+      - libjson-glib-1.0-0
+      - libsoup2.4-1
+      - libxml2
+    prime:
+      - -etc/fonts
+      - -var
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/cups
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - usr/lib
+      - usr/lib/libcups.so.2
+      - usr/lib/libcupsimage.so.2
+
+  cups-filters:
+    source: https://github.com/OpenPrinting/cups-filters
+    source-type: git
+    plugin: autotools
+    # We only need the 3 libraries: libcupsfilters, libppd, and libfontembed
+    override-build: |
+      set -eux
+      ./autogen.sh
+      ./configure --disable-avahi --disable-ldap --disable-foomatic --disable-braille --disable-mutool --without-rcdir --with-pdftops-path=/snap/gutenprint-printer-app/current/usr/bin/pdftops
+      make libppd.la
+      make libcupsfilters.la
+      make libfontembed.la
+      mkdir -p $SNAPCRAFT_STAGE/usr/lib
+      cp .libs/lib* $SNAPCRAFT_STAGE/usr/lib/
+      mkdir -p $SNAPCRAFT_STAGE/usr/include/ppd
+      cp ppd/*.h $SNAPCRAFT_STAGE/usr/include/ppd/
+      mkdir -p $SNAPCRAFT_STAGE/usr/include/cupsfilters
+      cp cupsfilters/*.h $SNAPCRAFT_STAGE/usr/include/cupsfilters/
+      mkdir -p $SNAPCRAFT_STAGE/usr/include/fontembed
+      cp fontembed/*.h $SNAPCRAFT_STAGE/usr/include/fontembed/
+      mkdir -p $SNAPCRAFT_STAGE/usr/lib/pkgconfig
+      cp *.pc $SNAPCRAFT_STAGE/usr/lib/pkgconfig/
+      #snapcraftctl build
+    build-packages:
+      - gettext
+      - autoconf
+      - automake
+      - autotools-dev
+      - pkg-config
+      - g++
+      - sharutils
+      - poppler-utils
+      - libglib2.0-dev
+      - liblcms2-dev
+      - libpoppler-cpp-dev
+      - libpng-dev
+      - libtiff5-dev
+      - zlib1g-dev
+      - libfontconfig1-dev
+      - libdbus-1-dev
+      - librsvg2-bin
+    stage-packages:
+      - poppler-utils
+      - libpoppler-cpp0v5
+      - libjbig0
+      - liblcms2-2
+      - libnspr4
+      - libnss3
+      - libopenjp2-7
+      - libpoppler97
+      - libtiff5
+      - libwebp6
+    prime:
+      - -etc/fonts
+      - -var
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - usr/lib
+      - usr/lib/libcupsfilters.so.1
+      - -usr/lib/libcupsfilters.so.1.0.0
+      - usr/lib/libppd.so.1
+      - -usr/lib/libppd.so.1.0.0
+      - usr/lib/libfontembed.so.1
+      - -usr/lib/libfontembed.so.1.0.0
+      - usr/bin/pdftops
+    after: [jpeglib, cups, qpdf, ghostscript]
+
+  gutenprint:
+    source: https://sourceforge.net/projects/gimp-print/files/gutenprint-5.3/5.3.4/gutenprint-5.3.4.tar.xz
+    plugin: autotools
+    # We only need the library, the XML resources,  and the CUPS driver
+    # (PPD generator, filter, backend)
+    autotools-configure-parameters:
+      - --prefix=/usr
+      - --datarootdir=/snap/gutenprint-printer-app/current/usr/share
+      - --enable-shared
+      - --disable-rpath
+      - --with-modules=static
+      - --without-gimp2
+      - --disable-libgutenprintui2
+      - --with-cups
+      - --enable-cups-level3-ppds
+      - --enable-translated-cups-ppds
+      - --enable-simplified-cups-ppds
+      - --enable-cups-1_2-enhancements
+      - --disable-cups-ppds
+      - --enable-escputil
+      - --disable-samples
+      - --disable-test
+      - --disable-testpattern
+      - --enable-nls
+    build-packages:
+      - byacc
+      - libreadline-dev
+      - libusb-1.0-0-dev
+      - zlib1g-dev
+      - flex
+      - gettext
+      - chrpath
+    organize:
+      snap/gutenprint-printer-app/current/usr/share: usr/share
+      usr/lib/cups/filter/rastertogutenprint.5.3: usr/lib/gutenprint-printer-app/filter/rastertogutenprint.5.3
+      usr/lib/cups/filter/commandtoepson: usr/lib/gutenprint-printer-app/filter/commandtoepson
+      usr/lib/cups/filter/commandtocanon: usr/lib/gutenprint-printer-app/filter/commandtocanon
+      usr/lib/cups/backend/gutenprint53+usb: usr/lib/gutenprint-printer-app/backend/gutenprint53+usb
+      usr/lib/cups/driver/gutenprint.5.3: usr/share/ppd/gutenprint.5.3
+    prime:
+      - -snap
+      - -etc/fonts
+      - -var
+      - -usr/include
+      - -share/man
+      - -share/doc
+      - -share/lintian
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - -usr/lib/gutenprint
+      - -usr/lib/libgutenprint.a
+      - -usr/lib/libgutenprint.la
+      - -usr/lib/pkgconfig
+      - -usr/lib/cups
+
+  gutenprint-printer-app:
+    plugin: make
+    source: .
+    make-parameters:
+      - LDFLAGS="$LDFLAGS -ljpeg"
+    # To improve convenience for developers (and everyone who wants to
+    # build from source), we do a "make clean" before "make" here,
+    # because if we had done "make" off-Snap, directly in the source
+    # tree. and afterwards build the Snap with snapcraft, the build
+    # sucks in our local binary of gutenprint-printer-app instead of
+    # compiling its own one in the Snap harness with the appropriate
+    # libraries, ending up with the Snap containing an executable
+    # which does not work inside the Snap. The "make clean" removes
+    # any accidentally grabbed binary.
+    override-build: |
+      set -eux
+      make clean
+      snapcraftctl build
+    build-packages:
+      - libusb-1.0-0-dev
+    stage-packages:
+      - libusb-1.0-0
+      - libjbig0
+      - liblcms2-2
+      - libtiff5
+      - libwebp6
+    stage:
+      - -var
+      - usr/bin/gutenprint-printer-app
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - usr/share/gutenprint-printer-app
+      - -usr/lib/gutenprint-printer-app
+    prime:
+      - -var
+      - usr/bin/gutenprint-printer-app
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - usr/share/gutenprint-printer-app
+      - -usr/lib/gutenprint-printer-app
+    after: [pappl-retrofit, pappl, cups-filters, gutenprint]
+
+  mdns-lookup:
+    # Make resolution of ".local" host names (Zero-Conf/mDNS/DNS-SD)
+    # working: Take the original nsswitch.conf file from the base
+    # Snap and add "mdns4_minimal [NOTFOUND=return]" to its "hosts:" line
+    # Also install corresponding mdns4_minimal plug-in
+    # See: https://forum.snapcraft.io/t/no-mdns-support-in-snaps-should-core-have-a-modified-nsswitch-conf/
+    plugin: nil
+    stage-packages:
+      - libnss-mdns
+    override-prime: |
+      set -eux
+      sed -Ee 's/^\s*hosts:(\s+)files/hosts:\1files mdns4_minimal \[NOTFOUND=return\]/' /snap/core20/current/etc/nsswitch.conf > $SNAPCRAFT_STAGE/etc/nsswitch.conf
+      snapcraftctl prime
+    prime:
+      - -var
+      - -usr/include
+      - -usr/lib/pkgconfig
+      - -usr/share/fonts
+      - -usr/share/man
+      - -usr/share/doc
+      - -usr/share/doc-base
+      - -usr/share/lintian
+      - lib/$SNAPCRAFT_ARCH_TRIPLET/libnss_mdns4_minimal*
+      - etc/nsswitch.conf
+
+  scripts:
+    plugin: dump
+    source: .
+    organize:
+      # Startup wrapper scripts
+      snap/local/run-gutenprint-printer-app*: scripts/
+    prime:
+      - scripts/
+    after: [gutenprint-printer-app]

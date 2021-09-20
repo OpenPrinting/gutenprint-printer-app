@@ -1,0 +1,10 @@
+[Unit]
+Description=Gutenprint Printer Application
+
+[Service]
+ExecStart=gutenprint-printer-app server
+ExecStop=gutenprint-printer-app shutdown
+Type=simple
+
+[Install]
+WantedBy=multi-user.target
