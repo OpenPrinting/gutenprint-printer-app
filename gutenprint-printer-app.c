@@ -90,6 +90,7 @@ main(int  argc,				// I - Number of command-line arguments
   cups_array_t *spooling_conversions,
                *stream_formats,
                *driver_selection_regex_list;
+  const char   *driver_display_regex;
 
   // Array of spooling conversions, most desirables first
   //
@@ -108,6 +109,21 @@ main(int  argc,				// I - Number of command-line arguments
   // input format.
   stream_formats = cupsArrayNew(NULL, NULL);
   cupsArrayAdd(stream_formats, &pr_stream_cups_raster);
+
+  if (PAPPL_MAX_VENDOR >= 256)
+    // If we create a Snap (or other sandboxed package) which includes
+    // its own PAPPL, we can modify the limit for vendor-specific
+    // options. If the limit got actually raised we allow the use of
+    // the expert PPDs. NOTE: In this case we should build Gutenprint
+    // with only the expert PPDs as this regex does not exclude the
+    // simplified PPDs.
+    driver_display_regex = " +- +CUPS\\+Gutenprint[ v0-9.]*()$";
+  else
+    // With PAPPL in stock configuration (from system, distro package,
+    // ...) use simplified PPDs, as PAPPL cannot cope with the huge
+    // amount of options of the expert PPDs (only 32 vendor-specific
+    // options allowed
+    driver_display_regex = " +- +CUPS\\+Gutenprint.*Simplified()";
 
   // Configuration record of the Printer Application
   pr_printer_app_config_t printer_app_config =
@@ -141,12 +157,7 @@ main(int  argc,				// I - Number of command-line arguments
                               // If empty all but the ignored backends are used
     TESTPAGE,                 // Test page (printable file), used by the
                               // standard test print callback pr_testpage()
-
-    // We use simplified PPDs here, as PAPPL cannot cope with the huge amount
-    // of options of the expert PPDs
-    " +- +CUPS\\+Gutenprint.*Simplified()",
-
-                              // Regular expression to separate the
+    driver_display_regex,     // Regular expression to separate the
                               // extra information after make/model in
                               // the PPD's *NickName. Also extracts a
                               // contained driver name (by using

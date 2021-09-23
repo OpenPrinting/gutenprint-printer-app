@@ -56,8 +56,15 @@ first.
   specialized CUPSbackend for dye sublimation printers with
   proprietary USB communication protocols is also included.
 
-- Note that Gutenprint's simplified PPD files are used as PAPPL cannot
-  cope with the huge amount of options in the expert PPD files.
+- The Printer Application checks the supported number of
+  vendor-specific options/attributes of the installed PAPPL library,
+  `PAPPL_MAX_VENDOR` and uses the expert PPDs only if 256 or more
+  vendor-specific options are supported, otherwise the simplified PPDs
+  are used. By default, the number is 32 and in the Snap we modify it
+  to be 256, meaning that the Gutenprint Printer Application Snap in
+  the Snap Store uses expert PPDs, while a quick build with `make`,
+  using an installed standard PAPPL library uses the simplified PPD
+  files.
 
 - If you have an unusal system configuration or a personal firewall
   PAPPL's backends will perhaps not discover your printer. In this
@@ -233,8 +240,11 @@ PPD_PATHS=/path/to/my/ppds:/my/second/place ./gutenprint-printer-app server
 Simply put a colon-separated list of any amount of paths into the
 variable. Creating a wrapper script is recommended.
 
-Note that only the simplified PPD files of Gutenprint are considred,
-other PPD files are ignored.
+Note that with a standard PAPPL installation only the simplified PPD
+files of Gutenprint are considered, other PPD files are ignored. If
+you want to use the expert PPDs of Gutenprint instead, you need to do
+a simple modification on the PAPPL source code, setting
+`PAPPL_MAX_VENDOR` in the pappl/printer.h to 256 instead of 32.
 
 Printers are discovered via PAPPL's backends plus Gutenprint's backend
 for dye-sublimation printers using a proprietary USB communication
