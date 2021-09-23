@@ -1,2 +1,2 @@
 #!/bin/sh
-exec $SNAP/scripts/run-gutenprint-printer-app -o log-level=debug -o log-file=$SNAP_COMMON/gutenprint-printer-app.log server "$@"
+exec $SNAP/scripts/run-gutenprint-printer-app -o log-file=$SNAP_COMMON/gutenprint-printer-app.log server "$@"

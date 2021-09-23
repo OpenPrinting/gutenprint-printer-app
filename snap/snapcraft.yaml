@@ -72,9 +72,9 @@ parts:
       # PAPPL to 256, as the original 32 is too small for Gutenprint's
       # expert PPDs
       perl -p -i -e 's/(define\s+PAPPL_MAX_VENDOR\s+)32/\1 256/' pappl/printer.h
-      # De-activate log-rotating
-      # Uncomment this for debugging
-      #perl -p -i -e 's/(system->logmaxsize\s+=).*/\1 0;/' pappl/system.c
+      # De-activate log-rotating. It does not work with the forked processes
+      # of the filters
+      perl -p -i -e 's/(system->logmaxsize\s+=).*/\1 0;/' pappl/system.c
       snapcraftctl build
     autotools-configure-parameters:
       - --prefix=/usr
