@@ -139,21 +139,20 @@ main(int  argc,				// I - Number of command-line arguments
     },
     SYSTEM_WEB_IF_FOOTER,     // Footer for web interface (in HTML)
     // pappl-retrofit special features to be used
-    //PR_COPTIONS_QUERY_PS_DEFAULTS |
     PR_COPTIONS_NO_GENERIC_DRIVER |
     PR_COPTIONS_USE_ONLY_MATCHING_NICKNAMES |
-    //PR_COPTIONS_NO_PAPPL_BACKENDS,
+    PR_COPTIONS_NO_PAPPL_BACKENDS |
     PR_COPTIONS_CUPS_BACKENDS,
     gutenprint_autoadd,       // Auto-add (driver assignment) callback
-    NULL,                     // Printer identify callback (Gutenprint backend
-                              // does not support this)
+    pr_identify,              // Printer identify callback
     pr_testpage,              // Test page print callback
     spooling_conversions,     // Array of data format conversion rules for
                               // printing in spooling mode
     stream_formats,           // Arrray for stream formats to be generated
                               // when printing in streaming mode
     "",                       // CUPS backends to be ignored
-    "gutenprint53+usb",       // CUPS backends to be used exclusively
+    "snmp,dnssd,usb,gutenprint53+usb",
+                              // CUPS backends to be used exclusively
                               // If empty all but the ignored backends are used
     TESTPAGE,                 // Test page (printable file), used by the
                               // standard test print callback pr_testpage()

@@ -66,10 +66,19 @@ first.
   using an installed standard PAPPL library uses the simplified PPD
   files.
 
-- If you have an unusal system configuration or a personal firewall
-  PAPPL's backends will perhaps not discover your printer. In this
-  situation the fully manual "Network Printer" entry in combination
-  with the hostname/IP field can be helpful.
+- Available printer devices are discovered (and used) with CUPS'
+  backends and with Gutenprint's dye-sublimation printer backend in
+  addition and not with PAPPL's own backends. This way dye-sublimation
+  printers are discovered with the correct backend for their totally
+  proprietary communication protocol. Also quirk workarounds for USB
+  printers with compatibility problems are used and Gutenprint output
+  can get send to the printer via IPP, IPPS (encrypted!), and LPD in
+  addition to socket (usually port 9100).
+
+- If you have an unusual system configuration or a personal firewall
+  your printer will perhaps not get discovered. In this situation the
+  fully manual "Network Printer" entry in combination with the
+  hostname/IP field can be helpful.
 
 - PWG Raster, Apple Raster or image input data does not get converted
   to PostScript or PDF, it is only converted/scaled to the required
