@@ -71,9 +71,10 @@ first.
   addition and not with PAPPL's own backends. This way dye-sublimation
   printers are discovered with the correct backend for their totally
   proprietary communication protocol. Also quirk workarounds for USB
-  printers with compatibility problems are used and Gutenprint output
-  can get send to the printer via IPP, IPPS (encrypted!), and LPD in
-  addition to socket (usually port 9100).
+  printers with compatibility problems are used (and are editable) and
+  Gutenprint output can get send to the printer via IPP, IPPS
+  (encrypted!), and LPD in addition to socket (usually port 9100). The
+  SNMP backend can get configured (community, address scope).
 
 - If you have an unusual system configuration or a personal firewall
   your printer will perhaps not get discovered. In this situation the
@@ -201,6 +202,15 @@ for more options.
 Use the "-o log-level=debug" argument for verbose logging in your
 terminal window.
 
+You can add files to `/var/snap/gutenprint-printer-app/common/usb/`
+for additional USB quirk rules. Edit the existing files only for quick
+tests, as they get replaced at every update of the Snap (to introduce
+new rules).
+
+You can edit the
+`/var/snap/gutenprint-printer-app/common/cups/snmp.conf` file for
+configuring SNMP network printer discovery.
+
 
 ## BUILDING WITHOUT SNAP
 
@@ -255,13 +265,17 @@ you want to use the expert PPDs of Gutenprint instead, you need to do
 a simple modification on the PAPPL source code, setting
 `PAPPL_MAX_VENDOR` in the pappl/printer.h to 256 instead of 32.
 
-Printers are discovered via PAPPL's backends plus Gutenprint's backend
+Printers are discovered via CUPS' backends plus Gutenprint's backend
 for dye-sublimation printers using a proprietary USB communication
-protocol. Printers are accepted if the model is explicitly supported,
+protocols. Printers are accepted if the model is explicitly supported,
 but for some printers with common languages (especially PCL 4/5c/e)
 there is also generic support.
 
-Make sure you have Gutenprint installed.
+USB Quirk rules in `/usr/share/cups/usb` and the `/etc/cups/snmp.conf`
+file can get edited if needed.
+
+Make sure you have Gutenprint and CUPS (at least its backends)
+installed.
 
 You also need Ghostscript to print PDF or PostScript jobs.
 
