@@ -142,6 +142,20 @@ the Snap Store:
 sudo snap install --edge gutenprint-printer-app
 ```
 
+It will currently need manual connection of some interfaces:
+
+```
+sudo snap connect gutenprint-printer-app:avahi-control
+sudo snap connect gutenprint-printer-app:raw-usb
+```
+
+Re-start the Snap after connecting the interfaces:
+
+```
+sudo snap stop gutenprint-printer-app
+sudo snap start gutenprint-printer-app
+```
+
 Then follow the instructions below for setting it up.
 
 To build the Snap by yourself, in the main directory of this
