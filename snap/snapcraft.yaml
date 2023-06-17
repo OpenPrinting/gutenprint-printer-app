@@ -34,6 +34,7 @@ parts:
   pappl:
     source: https://github.com/michaelrsweet/pappl
     source-type: git
+    source-depth: 1
     plugin: autotools
     override-build: |
       set -eux
@@ -52,6 +53,9 @@ parts:
       # PAPPL's build system does not insert the LDFLAGS when linking.
       # Patching Makedefs.in to fix this
       perl -p -i -e 's/^(\s*DSOFLAGS\s*=\s*\S*\s+)/\1\$\(LDFLAGS\) /' Makedefs.in
+      # Fix bug of wrong usage of network interface indices on DNS-SD
+      # registration
+      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/fix-interface-index-usage-in-avahi-calls.patch
       snapcraftctl build
     autotools-configure-parameters:
       - --prefix=/usr
@@ -71,7 +75,9 @@ parts:
       - zlib1g-dev
       - perl-base
     stage-packages:
-      - libavahi-client3
+      # We stage libavahi-client3 already in the "cups" part, to stage
+      # everything Avahi-related there, to avoid any file clashes.
+      #- libavahi-client3
       - libpng16-16
       - libusb-1.0-0
     prime:
@@ -93,6 +99,7 @@ parts:
   pappl-retrofit:
     source: https://github.com/openprinting/pappl-retrofit
     source-type: git
+    source-depth: 1
     plugin: autotools
     autotools-configure-parameters:
       - --prefix=/usr
@@ -131,13 +138,22 @@ parts:
     after: [cups, pappl, libcupsfilters, libppd]
 
   qpdf:
-    source: https://github.com/qpdf/qpdf/releases/download/release-qpdf-10.6.3/qpdf-10.6.3.tar.gz
-    plugin: autotools
-    autotools-configure-parameters:
-      - --prefix=/usr
+    source: https://github.com/qpdf/qpdf/releases/download/v11.4.0/qpdf-11.4.0.tar.gz
+    plugin: cmake
+    cmake-parameters:
+      - -DCMAKE_INSTALL_PREFIX=/
+      - -DCMAKE_BUILD_RPATH_USE_ORIGIN=1
+      - -DUSE_IMPLICIT_CRYPTO=0
+      - -DREQUIRE_CRYPTO_GNUTLS=1
+      - -DSHOW_FAILED_TEST_OUTPUT=1
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DQTEST_COLOR=0
     build-packages:
+      - cmake
       - g++
+      - libjpeg-dev
       - zlib1g-dev
+      - libgnutls28-dev
     stage-packages:
       - libjpeg-turbo8
     stage:
@@ -164,14 +180,8 @@ parts:
       - -usr/lib/pkgconfig
 
   ghostscript:
-    source: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs1000/ghostscript-10.0.0.tar.gz
+    source: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10011/ghostscript-10.01.1.tar.gz
     plugin: autotools
-    # Patch to fix https://github.com/OpenPrinting/cups-filters/issues/484,
-    # will be included from 10.01.0 on
-    override-build: |
-      set -eux
-      patch -p1 < $SNAPCRAFT_PROJECT_DIR/snap/local/ghostscript-cups-do-not-match-custom-page-sizes.patch
-      snapcraftctl build
     # We only need Raster and PostScript output
     autotools-configure-parameters:
       - --prefix=/usr
@@ -208,6 +218,7 @@ parts:
   cups:
     source: https://github.com/OpenPrinting/cups
     source-type: git
+    source-depth: 1
     plugin: autotools
     # We only need libcups (with headers, ...) and the backends
     override-build: |
@@ -262,6 +273,8 @@ parts:
       - perl-base
     stage-packages:
       - libusb-1.0-0
+      # We stage everything Avahi-related here and do not stage
+      # anything of this in the pappl part to avoid any file clashes.
       - libavahi-common3
       - libavahi-client3
       - libicu66
@@ -287,6 +300,7 @@ parts:
   libcupsfilters:
     source: https://github.com/OpenPrinting/libcupsfilters
     source-type: git
+    source-depth: 1
     plugin: autotools
     # We only need libcupsfilters itself. so we simply do not prime the
     # auxiliary files (/usr/share)
@@ -319,6 +333,8 @@ parts:
       - libnss3
       - libopenjp2-7
       - libpoppler97
+      # We stage libtiff5 and libwebp6 here and do not stage them in the
+      # "gutenprint-printer-app" part to avoid any file clashes.
       - libtiff5
       - libwebp6
       - libexif12
@@ -346,6 +362,7 @@ parts:
   libppd:
     source: https://github.com/OpenPrinting/libppd
     source-type: git
+    source-depth: 1
     plugin: autotools
     # We only need libppd itself
     autotools-configure-parameters:
@@ -480,8 +497,10 @@ parts:
       - libusb-1.0-0
       - libjbig0
       - liblcms2-2
-      - libtiff5
-      - libwebp6
+      # We stage libtiff5 and libweb6 already in the "libcupsfilters" part, so
+      # we do not stage them here again, to avoid any file clashes.
+      #- libtiff5
+      #- libwebp6
     stage:
       - -usr/lib/gutenprint-printer-app
     prime:
