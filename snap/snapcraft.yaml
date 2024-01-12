@@ -33,7 +33,12 @@ parts:
   pappl:
     source: https://github.com/michaelrsweet/pappl
     source-type: git
+    source-tag: 'v1.4.4'
     source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     lower-than: '2'
+#     no-9x-revisions: true
     plugin: autotools
     override-build: |
       set -eux
@@ -95,7 +100,11 @@ parts:
   pappl-retrofit:
     source: https://github.com/openprinting/pappl-retrofit
     source-type: git
+    source-tag: '1.0b2'
     source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     format: '%V'
     plugin: autotools
     autotools-configure-parameters:
       - --prefix=/usr
@@ -134,7 +143,14 @@ parts:
     after: [cups, pappl, libcupsfilters, libppd]
 
   qpdf:
-    source: https://github.com/qpdf/qpdf/releases/download/v11.4.0/qpdf-11.4.0.tar.gz
+    source: https://github.com/qpdf/qpdf/
+    source-type: git
+    source-tag: 'v11.8.0'
+    source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     lower-than: '12'
+#     no-9x-revisions: true
     plugin: cmake
     cmake-parameters:
       - -DCMAKE_INSTALL_PREFIX=/
@@ -176,7 +192,16 @@ parts:
       - -usr/lib/pkgconfig
 
   ghostscript:
-    source: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10012/ghostscript-10.01.2.tar.gz
+    #source: https://git.ghostscript.com/ghostpdl.git
+    source: https://github.com/ArtifexSoftware/ghostpdl.git
+    source-type: git
+    source-tag: 'ghostpdl-10.02.1'
+    source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     format: "ghostpdl-%M.%m.%R"
+#     lower-than: '11'
+#     no-9x-revisions: true
     plugin: autotools
     # We only need Raster and PostScript output
     autotools-configure-parameters:
@@ -214,7 +239,12 @@ parts:
   cups:
     source: https://github.com/OpenPrinting/cups
     source-type: git
+    source-tag: 'v2.4.7'
     source-depth: 1
+# ext:updatesnap
+#   version-format: 
+#     lower-than: '3'
+#     no-9x-revisions: true
     plugin: autotools
     # We only need libcups (with headers, ...) and the backends
     override-build: |
@@ -291,7 +321,12 @@ parts:
   libcupsfilters:
     source: https://github.com/OpenPrinting/libcupsfilters
     source-type: git
+    source-tag: '2.0.0'
     source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     lower-than: '3'
+#     no-9x-revisions: true
     plugin: autotools
     # We only need libcupsfilters itself. so we simply do not prime the
     # auxiliary files (/usr/share)
@@ -355,7 +390,12 @@ parts:
   libppd:
     source: https://github.com/OpenPrinting/libppd
     source-type: git
+    source-tag: '2.0.0'
     source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     lower-than: '3'
+#     no-9x-revisions: true
     plugin: autotools
     # We only need libppd itself
     autotools-configure-parameters:
@@ -394,7 +434,15 @@ parts:
     after: [cups, ghostscript, libcupsfilters]
 
   gutenprint:
-    source: https://sourceforge.net/projects/gimp-print/files/gutenprint-5.3/5.3.4/gutenprint-5.3.4.tar.xz
+    source: https://github.com/echiu64/gutenprint.git
+    source-type: git
+    source-tag: 'gutenprint-5_3_1'
+    source-depth: 1
+# ext:updatesnap
+#   version-format:
+#     format: 'gutenprint-%M_%m_%R'
+#     lower-than: '6'
+#     no-9x-revisions: true
     plugin: autotools
     # We only need the library, the XML resources,  and the CUPS driver
     # (PPD generator, filter, backend)
