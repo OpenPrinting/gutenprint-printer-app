@@ -436,7 +436,7 @@ parts:
   gutenprint:
     source: https://github.com/echiu64/gutenprint.git
     source-type: git
-    source-tag: 'gutenprint-5_3_1'
+    source-tag: 'gutenprint-5_3_3'
     source-depth: 1
 # ext:updatesnap
 #   version-format:
