@@ -1,6 +1,6 @@
 name: gutenprint-printer-app
 base: core22
-version: '5.3.4-3'
+version: '5.3.4-4'
 grade: stable
 summary: Gutenprint Printer Application
 description: |
@@ -198,7 +198,7 @@ parts:
     #source: https://git.ghostscript.com/ghostpdl.git
     source: https://github.com/ArtifexSoftware/ghostpdl.git
     source-type: git
-    source-tag: 'ghostpdl-10.02.1'
+    source-tag: 'ghostpdl-10.03.0rc1_test'
     source-depth: 1
 # ext:updatesnap
 #   version-format:
