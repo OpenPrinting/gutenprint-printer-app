@@ -1,6 +1,6 @@
 name: gutenprint-printer-app
 base: core22
-version: '5.3.4-5'
+version: '5.3.4-6'
 grade: stable
 summary: Gutenprint Printer Application
 description: |
@@ -245,7 +245,7 @@ parts:
   cups:
     source: https://github.com/OpenPrinting/cups
     source-type: git
-    source-tag: 'v2.4.7'
+    source-tag: 'v2.4.8'
     source-depth: 1
 # ext:updatesnap
 #   version-format: 
@@ -444,7 +444,7 @@ parts:
     # source: https://github.com/echiu64/gutenprint.git
     source: https://salsa.debian.org/printing-team/gutenprint.git
     source-type: git
-    source-tag: 'debian/5.3.4.20220624T01008808d602-1'
+    source-tag: 'debian/5.3.4.20220624T01008808d602-2'
     # github source tag
     # source-tag: 'gutenprint-5_3_3'
     source-depth: 1
