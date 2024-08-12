@@ -596,4 +596,3 @@ parts:
       if [ -f "$CRAFT_PRIME/scripts/run-dbus.sh" ]; then
         chmod +x "$CRAFT_PRIME/scripts/run-dbus.sh"
       fi
-    after: [ghostscript-printer-app]
