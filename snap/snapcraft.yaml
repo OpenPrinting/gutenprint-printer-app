@@ -1,6 +1,6 @@
 name: gutenprint-printer-app
 base: core22
-version: '5.3.4-10'
+version: '5.3.4-8'
 grade: stable
 summary: Gutenprint Printer Application
 description: |
