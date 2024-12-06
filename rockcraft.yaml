@@ -1,6 +1,6 @@
 name: gutenprint-printer-app
 base: ubuntu@22.04
-version: '5.3.4-10'
+version: '5.3.4-11'
 summary: Gutenprint Printer Application
 description: |
   The Gutenprint Printer Application is a PAPPL (Printer Application
@@ -434,7 +434,7 @@ parts:
     # source: https://github.com/echiu64/gutenprint.git
     source: https://salsa.debian.org/printing-team/gutenprint.git
     source-type: git
-    source-tag: 'debian/5.3.4.20220624T01008808d602-3'
+    source-tag: 'debian/5.3.4.20220624T01008808d602-4'
     # github source tag
     # source-tag: 'gutenprint-5_3_3'
     source-depth: 1
