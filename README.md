@@ -323,7 +323,14 @@ PostScript printer, accessory configuration and option defaults can
 also often get polled from the printer.
 
 <!-- Begin Included Components -->
-
+## Included Components
+  - pappl v1.4.8
+  - qpdf v11.9.1
+  - ghostscript ghostpdl-10.05.0-test-base-001
+  - cups v2.4.11
+  - libcupsfilters 2.1.0
+  - libppd 2.1.0
+  - gutenprint debian/5.3.4.20220624T01008808d602-4
 <!-- End Included Components -->
 
 ## BUILDING WITHOUT PACKAGING OR INSTALLATION
