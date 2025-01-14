@@ -127,13 +127,13 @@ main(int  argc,				// I - Number of command-line arguments
     // the expert PPDs. NOTE: In this case we should build Gutenprint
     // with only the expert PPDs as this regex does not exclude the
     // simplified PPDs.
-    driver_display_regex = " +- +CUPS\\+Gutenprint[ v0-9.]*()$";
+    driver_display_regex = " +- +CUPS\\+Gutenprint +[^ ]+()$";
   else
     // With PAPPL in stock configuration (from system, distro package,
     // ...) use simplified PPDs, as PAPPL cannot cope with the huge
     // amount of options of the expert PPDs (only 32 vendor-specific
     // options allowed
-    driver_display_regex = " +- +CUPS\\+Gutenprint.*Simplified()";
+    driver_display_regex = " +- +CUPS\\+Gutenprint +[^ ]+ +Simplified()$";
 
   // Configuration record of the Printer Application
   pr_printer_app_config_t printer_app_config =
