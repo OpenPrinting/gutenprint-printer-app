@@ -329,7 +329,7 @@ also often get polled from the printer.
   - ghostscript ghostpdl-10.05.0-test-base-001
   - cups v2.4.11
   - libcupsfilters 2.1.1
-  - libppd 2.1.0
+  - libppd 2.1.1
   - gutenprint debian/5.3.4.20220624T01008808d602-4
 <!-- End Included Components -->
 
