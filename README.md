@@ -231,12 +231,20 @@ To pull the image from the GitHub Container Registry, run the following command:
   sudo docker pull ghcr.io/openprinting/gutenprint-printer-app:latest
 ```
 
+Create a Docker volume:
+```sh
+  sudo docker volume create gutenprint-printer-app
+```
+
 To run the container after pulling the image from the GitHub Container Registry, use:
 ```sh
   sudo docker run -d \
       --name gutenprint-printer-app \
       --network host \
       -e PORT=<port> \
+      -v gutenprint-printer-app:/var/lib/gutenprint-printer-app \
+      -v /dev/bus/usb:/dev/bus/usb:ro \
+      --device-cgroup-rule='c 189:* rmw' \
       ghcr.io/openprinting/gutenprint-printer-app:latest
 ```
 
@@ -246,18 +254,30 @@ Alternatively, you can pull the image from Docker Hub, by running:
   sudo docker pull openprinting/gutenprint-printer-app
 ```
 
+Create a Docker volume:
+```sh
+  sudo docker volume create gutenprint-printer-app
+```
+
 To run the container after pulling the image from Docker Hub, use:
 ```sh
   sudo docker run -d \
       --name gutenprint-printer-app \
       --network host \
       -e PORT=<port> \
+      -v gutenprint-printer-app:/var/lib/gutenprint-printer-app \
+      -v /dev/bus/usb:/dev/bus/usb:ro \
+      --device-cgroup-rule='c 189:* rmw' \
       openprinting/gutenprint-printer-app:latest
 ```
 
 - `PORT` is an optional environment variable used to start the printer-app on a specified port. If not provided, it will start on the default port 8000 or, if port 8000 is busy, on 8001 and so on.
 - **The container must be started in `--network host` mode** to allow the Printer-Application instance inside the container to access and discover printers available in the local network where the host system is in.
 - Alternatively using the internal network of the Docker instance (`-p <port>:8000` instead of `--network host -e PORT=<port>`) only gives access to local printers running on the host system itself.
+- `-v gutenprint-printer-app:/var/lib/gutenprint-printer-app` maps a volume for persistent storage.
+- The following volume and device settings are crucial for USB printer access:
+  - `-v /dev/bus/usb:/dev/bus/usb:ro` mounts the host's USB device directory read-only inside the container for USB printer access.
+  - `--device-cgroup-rule='c 189:* rmw'` allows the container to read, write, and mknod to USB devices.
 
 ### Setting Up and Running gutenprint-printer-app locally
 
@@ -295,6 +315,11 @@ Once the rock is built, you need to compile docker image from it.
   sudo rockcraft.skopeo --insecure-policy copy oci-archive:<rock_image> docker-daemon:gutenprint-printer-app:latest
 ```
 
+Create a Docker volume:
+```sh
+  sudo docker volume create gutenprint-printer-app
+```
+
 **Run the gutenprint-printer-app Docker Container**
 
 ```sh
@@ -302,11 +327,18 @@ Once the rock is built, you need to compile docker image from it.
       --name gutenprint-printer-app \
       --network host \
       -e PORT=<port> \
+      -v gutenprint-printer-app:/var/lib/gutenprint-printer-app \
+      -v /dev/bus/usb:/dev/bus/usb:ro \
+      --device-cgroup-rule='c 189:* rmw' \
       gutenprint-printer-app:latest
 ```
 - `PORT` is an optional environment variable used to start the printer-app on a specified port. If not provided, it will start on the default port 8000 or, if port 8000 is busy, on 8001 and so on.
 - **The container must be started in `--network host` mode** to allow the Printer-Application instance inside the container to access and discover printers available in the local network where the host system is in.
 - Alternatively using the internal network of the Docker instance (`-p <port>:8000` instead of `--network host -e PORT=<port>`) only gives access to local printers running on the host system itself.
+- `-v gutenprint-printer-app:/var/lib/gutenprint-printer-app` maps a volume for persistent storage.
+- The following volume and device settings are crucial for USB printer access:
+  - `-v /dev/bus/usb:/dev/bus/usb:ro` mounts the host's USB device directory read-only inside the container for USB printer access.
+  - `--device-cgroup-rule='c 189:* rmw'` allows the container to read, write, and mknod to USB devices.
 
 #### Setting up
 
